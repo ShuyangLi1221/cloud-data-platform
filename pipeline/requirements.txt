@@ -1,0 +1,11 @@
+sqlalchemy
+psycopg2-binary
+
+google-cloud-bigquery
+google-cloud-storage
+
+python-dotenv
+
+pandas
+
+pyarrow
