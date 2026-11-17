@@ -5,7 +5,7 @@ from datetime import datetime
 with DAG(
     dag_id="retail_pipeline_daily",
     start_date=datetime(2025, 1, 1),
-    schedule="@hourly",
+    schedule="@daily",
     catchup=False,
 ) as dag:
 
