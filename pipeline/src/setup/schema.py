@@ -81,3 +81,10 @@ CATEGORY_SALES_SCHEMA = [
     bigquery.SchemaField("quantity", "INTEGER"),
     bigquery.SchemaField("revenue", "FLOAT"),
 ]
+
+REJECTED_SCHEMA = [
+    bigquery.SchemaField("pipeline_name", "STRING"),
+    bigquery.SchemaField("reason", "STRING"),
+    bigquery.SchemaField("row_json", "STRING"),
+    bigquery.SchemaField("rejected_at", "TIMESTAMP"),
+]

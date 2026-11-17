@@ -9,6 +9,18 @@ class BaseExtractor(ABC):
     incremental_column = None
     
     @classmethod
+    def extract(cls, window_start, window_end):
+        with Session(engine) as session:
+            query = session.query(cls.model).filter(
+                cls.incremental_column <= window_end
+            )
+            if window_start is not None:
+                query = query.filter(
+                    cls.incremental_column > window_start
+                )
+            return [row.to_dict() for row in query.all()]
+    
+    @classmethod
     def extract_all(cls):
         
         with Session(engine) as session:

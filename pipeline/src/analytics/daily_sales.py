@@ -21,7 +21,7 @@ class DailySalesAnalytics(BaseAnalytics):
 
         SUM(sales_amount) AS revenue,
 
-        AVG(sales_amount) AS avg_order_value
+        SAFE_DIVIDE(SUM(sales_amount), COUNT(DISTINCT order_id)) AS avg_order_value
 
     FROM `{GCP_PROJECT}.{BIGQUERY_DATASET}.fact_sales`
 

@@ -1,8 +1,10 @@
-from sqlalchemy import ForeignKey, Numeric
+from sqlalchemy import ForeignKey, Numeric, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from models.base import Base
 from typing import TYPE_CHECKING
 from decimal import Decimal
+from datetime import datetime
+
 
 if TYPE_CHECKING:
     from models.order import Order
@@ -31,6 +33,11 @@ class OrderItem(Base):
 
     line_total: Mapped[Decimal] = mapped_column(
         Numeric(10, 2)
+    )
+    
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        default=datetime.utcnow,
     )
 
     order: Mapped["Order"] = relationship(back_populates="order_items")

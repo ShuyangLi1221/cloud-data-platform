@@ -8,6 +8,7 @@ from pipeline.order_item import OrderItemPipeline
 from analytics.runner import AnalyticsRunner
 
 
+
 def main():
   
     PipelineRunner.run(CustomerPipeline)

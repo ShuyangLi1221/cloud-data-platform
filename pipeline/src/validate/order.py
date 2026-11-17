@@ -10,7 +10,7 @@ class OrderValidator(BaseValidator):
         if not row["order_id"]:
             return "Order DI is missing"
         
-        if not row["total_amount"]:
+        if row["total_amount"] is None:
             return "Total Amount is missing"
         if row["total_amount"] < 0:
             return "Invalid Total Amount"

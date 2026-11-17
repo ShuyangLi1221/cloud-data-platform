@@ -1,9 +1,13 @@
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 from metadata.metadata_service import MetadataService
 from common.logger import logger
+from load.rejected import load_rejected
 
 class PipelineRunner:
+    
+    SATETY_LAG = timedelta(minutes=5)
+    LOOKBACK = timedelta(minutes=10)
 
     @classmethod
     def run(
@@ -21,16 +25,11 @@ class PipelineRunner:
         pipeline_start = datetime.now(UTC)
         
         try:
-            last_run = MetadataService.get_last_run(
-                pipeline.name,
-            )
+            windown_end = datetime.now(UTC) - cls.SATETY_LAG
+            last_run = MetadataService.get_last_run(pipeline.name)
+            window_start = last_run - cls.LOOKBACK if last_run else None
             
-            if last_run is None:
-                rows = pipeline.extractor.extract_all_dict()
-            else:
-                rows = pipeline.extractor.extract_incremental(
-                    last_run,
-                )
+            rows = pipeline.extractor.extract(window_start, windown_end)
 
             logger.info(
                 "Extracted %d rows",
@@ -38,6 +37,7 @@ class PipelineRunner:
             )
 
             validation = pipeline.validator.validate(rows)
+            load_rejected(pipeline.name, validation.rejected_rows)
 
             logger.info(
                 "Validated %d rows",
@@ -61,7 +61,7 @@ class PipelineRunner:
             
             MetadataService.finish_pipeline(
                 pipeline_name=pipeline.name,
-                last_run=datetime.now(UTC),
+                last_run=windown_end,
                 rows_loaded=loaded,
                 duration=duration
             )

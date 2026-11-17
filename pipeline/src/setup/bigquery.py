@@ -16,7 +16,8 @@ from setup.schema import (
     DAILY_SALES_SCHEMA,
     TOP_CUSTOMERS_SCHEMA,
     TOP_PRODUCTS_SCHEMA,
-    CATEGORY_SALES_SCHEMA
+    CATEGORY_SALES_SCHEMA,
+    REJECTED_SCHEMA
 )
 from common.logger import logger
 
@@ -30,6 +31,7 @@ TABLES = [
     ("top_products", TOP_PRODUCTS_SCHEMA),
     ("top_customers", TOP_CUSTOMERS_SCHEMA),
     ("category_sales", CATEGORY_SALES_SCHEMA),
+    ("rejected_rows", REJECTED_SCHEMA),
 ]
 
 credentials = service_account.Credentials.from_service_account_file(

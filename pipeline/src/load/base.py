@@ -10,6 +10,7 @@ from common.logger import logger
 
 class BaseLoader:
     table = None
+    primary_key = None
     client = bigquery.Client(
         project=GCP_PROJECT
     )
@@ -21,27 +22,39 @@ class BaseLoader:
         if not rows:
             return 0
 
-        table_id = (
-            f"{GCP_PROJECT}."
-            f"{BIGQUERY_DATASET}."
-            f"{cls.table}"
-        )
+        dataset = f"{GCP_PROJECT}.{BIGQUERY_DATASET}"
+        target = f"{dataset}.{cls.table}"
+        staging = f"{dataset}.{cls.table}_staging"
+
+        schema = cls.client.get_table(target).schema
         
         for attempt in range(cls.MAX_RETRIES):
             try:
-                errors = cls.client.insert_rows_json(
-                    table_id,
-                    rows
+                cls.client.load_table_from_json(
+                    rows,
+                    staging,
+                    job_config=bigquery.LoadJobConfig(
+                        schema=schema,
+                        write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE,
+                    ),
+                ).result()
+                key = cls.primary_key
+                update_set = ", ".join(
+                    f"{f.name} = S.{f.name}" for f in schema if f.name != key
                 )
-                if errors:
-                    raise RuntimeError(
-                        f"BigQuery insert failed: {errors}"
-                    )
-                logger.info(
-                    "%d rows loaded into %s",
-                    len(rows),
-                    cls.table,
-                )
+                cls.client.query(f"""
+                    MERGE `{target}` T
+                    USING (
+                        SELECT * FROM `{staging}`
+                        WHERE TRUE
+                        QUALIFY ROW_NUMBER() OVER (PARTITION BY {key} ORDER BY {key}) = 1
+                    ) S
+                    ON T.{key} = S.{key}
+                    WHEN MATCHED THEN UPDATE SET {update_set}
+                    WHEN NOT MATCHED THEN INSERT ROW
+                """).result()
+
+                logger.info("%d rows merged into %s", len(rows), cls.table)
                 return len(rows)
             
             except Exception as e:
