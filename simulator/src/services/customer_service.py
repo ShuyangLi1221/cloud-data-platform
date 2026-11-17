@@ -39,7 +39,7 @@ class CustomerService:
     
     @staticmethod
     def generate_daily() -> None:
-        daily_count = random.randint(20, 50)
+        daily_count = random.randint(1, 5)
         
         customers = []
         

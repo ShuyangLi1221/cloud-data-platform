@@ -65,7 +65,7 @@ class OrderService:
             if not customers:
                 raise Exception("No customers found.")
             
-            daily_orders = random.randint(50, 150)
+            daily_orders = random.randint(5, 15)
             
             orders = []
             

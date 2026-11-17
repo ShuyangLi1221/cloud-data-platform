@@ -38,3 +38,9 @@ class Order(Base):
         back_populates="order",
         cascade="all, delete-orphan",
     )
+    
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+    )
