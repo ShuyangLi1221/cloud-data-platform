@@ -4,6 +4,13 @@ A production-style cloud ETL pipeline built with **Python, Apache Airflow, Docke
 
 This project simulates a real-world retail data platform by generating transactional data, performing incremental ETL, loading data into BigQuery, and building analytical tables for reporting.
 
+## Live Dashboard
+
+**[View the Retail Sales Performance dashboard →](https://datastudio.google.com/u/0/reporting/e83a2e39-a80e-498e-9cc5-79787f35f66c/page/kUhDG)**
+
+![Dashboard preview](docs/dashboard.png)
+
+Built in Looker Studio on top of the BigQuery analytics tables. Data is refreshed hourly by the Airflow pipeline.
 ---
 
 ## Architecture
@@ -147,6 +154,20 @@ Duration    : 0.98 sec
 ```
 
 ---
+
+## Alerting
+
+The pipeline sends email alerts through Gmail SMTP in two cases:
+
+| Alert | Trigger |
+|---|---|
+| Pipeline failure | Any stage raises an exception; the email includes the pipeline name and the error |
+| High reject rate | More than 5% of extracted rows fail validation |
+
+The second case matters most: the run still succeeds and Airflow shows green, so without this alert a source data problem would go unnoticed. Rejected rows are kept in the `rejected_rows` table in BigQuery for investigation.
+
+Alerting is optional. If the email settings are not configured, the pipeline logs a warning and continues.
+
 
 ## Airflow Scheduling
 

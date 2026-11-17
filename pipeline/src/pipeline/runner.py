@@ -3,11 +3,14 @@ from datetime import UTC, datetime, timedelta
 from metadata.metadata_service import MetadataService
 from common.logger import logger
 from load.rejected import load_rejected
+from common.alert import send_alert
+
 
 class PipelineRunner:
     
     SATETY_LAG = timedelta(minutes=5)
     LOOKBACK = timedelta(minutes=10)
+    REJECT_THRESHOLD = 0.05
 
     @classmethod
     def run(
@@ -38,6 +41,12 @@ class PipelineRunner:
 
             validation = pipeline.validator.validate(rows)
             load_rejected(pipeline.name, validation.rejected_rows)
+            if rows and (len(validation.rejected_rows) / len(rows)) > cls.REJECT_THRESHOLD:
+                send_alert(
+                    f"{pipeline.name}: high reject rate",
+                    f"{len(validation.rejected_rows)} of {len(rows)} rows rejected.\n"
+                    f"See the rejected_rows table in BigQuery.",
+                )
 
             logger.info(
                 "Validated %d rows",
@@ -93,6 +102,10 @@ Duration    : %.2f sec
             logger.exception(
                 "Pipeline %s failed",
                 pipeline.name
+            )
+            send_alert(
+                f"Pipeline {pipeline.name} failed",
+                f"Pipeline: {pipeline.name}\nError: {e}",
             )
             
             raise
